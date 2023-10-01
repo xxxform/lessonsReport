@@ -23,13 +23,13 @@ const filters = {
         if ([from, to].some(value => isNaN(value) || value < 0)) {
             throw new UserError('Неверный параметр studentsCount');
         }   
-
-        return `lessons.id IN (SELECT lesson_id FROM lesson_students GROUP BY lesson_id HAVING COUNT(1) BETWEEN ${from} AND ${to})`;
+        //по хорошему для боевого сервера нужно сделать очередь отдельных запросов('date' потом 'status'...), так как такие подзапросы грузят базу
+        return `lessons.id IN (SELECT id FROM lessons LEFT JOIN lesson_students ON lessons.id = lesson_students.lesson_id GROUP BY id HAVING COUNT(lesson_id) BETWEEN ${from} AND ${to})`;
     },
 
     status(status) {
         if (status.length !== 1) throw new UserError('Неверный параметр status');
-        if (!['0', '1'].some(valid => valid === status)) throw new UserError('Неверный параметр status');;
+        if (!['0', '1'].some(valid => valid === status)) throw new UserError('Неверный параметр status');
         
         return `lessons.status = ${status}`;
     },

@@ -7,7 +7,7 @@ import validator from './lesson.validator.js';
 class LessonController {
     async getLessons(ctx) {
         try {
-            const filterQueries = filters(ctx.request.query, ['teacherIds', 'studentsCount', 'status', 'date']);
+            const filterQueries = filters(ctx.request.query, ['date', 'status', 'teacherIds', 'studentsCount']);
             ctx.body = await LessonService.getLessons(ctx.request.query, filterQueries);
         } catch(error) {
             handleError(ctx, error);
