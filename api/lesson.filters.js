@@ -52,4 +52,13 @@ const filters = {
     }
 }
 
-export default filters;
+export default (parameters, filterOrder) => {
+    const filterResults = [];
+    for (const filterName of filterOrder) {
+        const parameter = parameters[filterName];
+        const filter = filters[filterName];
+        if (!parameter || !filter) continue;
+        filterResults.push(filter(parameters[filterName]));
+    }
+    return filterResults;
+};

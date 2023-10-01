@@ -37,7 +37,7 @@ export const populate = async (toPopulate, tableName, fields, cache) => {
 
 export class UserError extends Error {}
 
-export const handleError = async (ctx, error) => {
+export const handleError = (ctx, error) => {
     ctx.status = error instanceof UserError ? 400 : 500;
     ctx.body = error.message;
 }

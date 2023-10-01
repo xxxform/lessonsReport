@@ -1,23 +1,12 @@
 import db from '../db.js';
-import validator from './lesson.validator.js';
-import filters from './lesson.filters.js';
 import {pad, populate, UserError} from './basis.js';
 
 export default {
-    async getLessons(parameters) {
+    async getLessons(parameters, filters) {
         let mainQuery = `SELECT * FROM lessons`;
-
-        const filterOrder = ['teacherIds', 'studentsCount', 'status', 'date'];
-        const filterResults = [];
-        for (const filterName of filterOrder) {
-            const parameter = parameters[filterName];
-            const filter = filters[filterName];
-            if (!parameter || !filter) continue;
-            filterResults.push(filter(parameters[filterName]));
-        }
         
-        if (filterResults.length > 0) 
-            mainQuery += ' WHERE '+ filterResults.join(' AND ');
+        if (filters.length > 0) 
+            mainQuery += ' WHERE '+ filters.join(' AND ');
 
         const lessonsPerPage = parseInt(parameters.lessonsPerPage) || 5;
         mainQuery += ` LIMIT ${lessonsPerPage}`;
@@ -52,24 +41,21 @@ export default {
     async createLessons({title, days, firstDate, lessonsCount, lastDate}) {
         lastDate = new Date(lastDate);
         firstDate = new Date(firstDate);
-
-        validator({title, days, firstDate, lessonsCount, lastDate});
         
         let lessonQueryValues = [];
         const sunday = new Date(firstDate);
         sunday.setDate(firstDate.getDate() - firstDate.getDay()); //Ищем ближайшее слева вс 
         
-        //шаг внешнего цикла - неделя
+        //шаг внешнего цикла - неделя.  
         outer: while(true) {
-            for (const dayOfWeek of days) {
+            for (const dayOfWeek of days) {//Ходим по неделям и заполняем маску days
+                if (lessonQueryValues.length >= 300) break outer; 
                 if (!+lastDate && lessonsCount < 1) break outer;
                 const date = new Date(sunday);
                 date.setDate(sunday.getDate() + dayOfWeek);
                 if (date < firstDate) continue;
                 if (!!+lastDate && date > lastDate) break outer;
-                //протестить
-                if (lessonQueryValues.length > 300) break outer; 
-                if (date - firstDate > 31536000000) break outer;
+                if (date - firstDate > 31536000000) break outer; //больше года
                 
                 lessonQueryValues.push(`('${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}','${title}',0)`);
                 lessonsCount--;
