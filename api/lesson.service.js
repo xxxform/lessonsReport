@@ -31,8 +31,14 @@ export default {
             const lessonTeachersResult = (await db.query(`SELECT teacher_id AS id FROM lesson_teachers WHERE lesson_id = ${lesson.id}`)).rows;
             lesson.teachers = await populate(lessonTeachersResult.map(({id}) => id) , 'teachers', '*', teachers);
 
-            const lessonStudentsResult = (await db.query(`SELECT student_id AS id FROM lesson_students WHERE lesson_id = ${lesson.id}`)).rows;
+            let visitCount = 0;
+            const lessonStudentsResult = (await db.query(`SELECT visit, student_id AS id FROM lesson_students WHERE lesson_id = ${lesson.id}`)).rows;
             lesson.students = await populate(lessonStudentsResult.map(({id}) => id), 'students', '*', students);
+            lesson.students.forEach(student => {
+                const lessonStudent = lessonStudentsResult.find(({id}) => id === student.id);
+                visitCount += student.visit = lessonStudent.visit;
+            });
+            lesson.visitCount = visitCount;
         }
         
         return result.rows;
